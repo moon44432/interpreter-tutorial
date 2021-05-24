@@ -105,12 +105,12 @@ Value VariableExprAST::execute()
 
 Value ArrDeclExprAST::execute()
 {
-    namedValue Arr = { Name, StackMemory.push(Value()), true, Indices };
+    namedValue Arr = { Name, StackMemory.push(Value(0)), true, Indices };
     SymTbl.push_back(Arr);
 
     int size = 1;
     for (int i = 0; i < Indices.size(); i++) size *= Indices[i];
-    for (int i = 0; i < size - 1; i++) StackMemory.push(Value());
+    for (int i = 0; i < size - 1; i++) StackMemory.push(Value(0));
 
     return Value(size);
 }
@@ -486,8 +486,7 @@ void HandleTopLevelExpression(std::string& Code, int& Idx)
         Value RetVal = FnAST->execute(std::vector<Value>());
         if (!RetVal.isErr() && IsInteractive)
         {
-            if (RetVal.isInt()) fprintf(stderr, "Evaluated to %d\n", (int)RetVal.getNum());
-            else fprintf(stderr, "Evaluated to %f\n", RetVal.getNum());
+            fprintf(stderr, "Evaluated to %f\n", RetVal.getNum());
         }
     }
     else GetNextToken(Code, Idx); // Skip token for error recovery.
