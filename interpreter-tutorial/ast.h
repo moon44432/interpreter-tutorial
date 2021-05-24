@@ -11,9 +11,9 @@
 
 typedef enum NodeType
 {
-	node_default = 0, // 기타 모든 노드
-	node_var = 1, // 변수 참조 노드
-	node_deref = 2, // 역참조 노드
+    node_default = 0, // 기타 모든 노드
+    node_var = 1, // 변수 참조 노드
+    node_deref = 2, // 역참조 노드
 } nodeType;
 
 /// ExprAST - 구문 트리의 기본 노드

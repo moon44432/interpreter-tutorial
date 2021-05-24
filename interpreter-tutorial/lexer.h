@@ -34,8 +34,6 @@ typedef enum Token
     // block and bracket
     tok_openblock = -90,
     tok_closeblock = -91,
-    tok_openbrkt = -92,
-    tok_closebrkt = -93,
 };
 
 extern std::string IdStr;

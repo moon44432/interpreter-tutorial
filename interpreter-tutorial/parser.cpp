@@ -341,7 +341,7 @@ std::shared_ptr<ExprAST> ParsePrimary(const std::string& Code, int& Idx)
         return ParseWhileExpr(Code, Idx);
     case tok_if:
         return ParseIfExpr(Code, Idx);
-    case tok_openbrkt:
+    case '(':
         return ParseParenExpr(Code, Idx);
     default:
         return LogError("Unknown token when expecting an expression");
@@ -462,89 +462,43 @@ std::shared_ptr<ExprAST> ParseBlockExpression(const std::string& Code, int& Idx)
 {
     if (CurTok != tok_openblock)
         return ParseExpression(Code, Idx);
+
     GetNextToken(Code, Idx);
 
     std::vector<std::shared_ptr<ExprAST>> ExprSeq;
-
     while (true)
     {
         auto Expr = ParseBlockExpression(Code, Idx);
         ExprSeq.push_back(std::move(Expr));
+
         if (CurTok == ';')
             GetNextToken(Code, Idx);
+
         if (CurTok == tok_closeblock)
         {
             GetNextToken(Code, Idx);
             break;
         }
     }
-    auto Block = std::make_shared<BlockExprAST>(ExprSeq);
-    return std::move(Block);
+    return std::make_shared<BlockExprAST>(ExprSeq);
 }
 
 /// prototype
 ///   ::= id '(' id* ')'
-///   ::= binary LETTER(LETTER)? number? (id, id)
-///   ::= unary LETTER (id)
 std::shared_ptr<PrototypeAST> ParsePrototype(const std::string& Code, int& Idx)
 {
     std::string FnName;
-
-    unsigned int Kind = 0; // 0 = identifier, 1 = unary, 2 = binary.
-    unsigned int BinaryPrecedence = 18;
-
-    switch (CurTok) {
-    default:
-        return LogErrorP("Expected function name in prototype");
-    case tok_identifier:
+    if (CurTok == tok_identifier)
+    {
         FnName = IdStr;
-        Kind = 0;
         GetNextToken(Code, Idx);
-        break;
-    case tok_unary:
-        GetNextToken(Code, Idx);
-        if (!isascii(CurTok))
-            return LogErrorP("Expected unary operator");
-        FnName = "unary";
-        FnName += (char)CurTok;
-        Kind = 1;
-        GetNextToken(Code, Idx);
-        break;
-    case tok_binary:
-        GetNextToken(Code, Idx);
-        if (!isascii(CurTok))
-            return LogErrorP("Expected binary operator");
-
-        std::string OpName;
-        OpName += (char)CurTok;
-        GetNextToken(Code, Idx);
-        if (OpChrList.find(CurTok) != std::string::npos)
-        {
-            OpName += (char)CurTok;
-            GetNextToken(Code, Idx);
-        }
-        Kind = 2;
-
-        // Read the precedence if present.
-        if (CurTok == tok_number) {
-            if (NumVal < 1 || NumVal > 18)
-                return LogErrorP("Invalid precedence: must be 1~18");
-            BinaryPrecedence = (unsigned int)NumVal;
-            GetNextToken(Code, Idx);
-        }
-
-        // install binary operator.
-        BinopPrecedence[OpName] = BinaryPrecedence;
-
-        FnName = "binary" + OpName;
-        break;
     }
+    else return LogErrorP("Expected function name in prototype");
 
     if (CurTok != '(')
         return LogErrorP("Expected '(' in prototype");
 
     std::vector<std::string> ArgNames;
-
     if (GetNextToken(Code, Idx) != ')')
     {
         while (true)
@@ -560,24 +514,18 @@ std::shared_ptr<PrototypeAST> ParsePrototype(const std::string& Code, int& Idx)
             GetNextToken(Code, Idx);
         }
     }
-    // success.
-    GetNextToken(Code, Idx); // eat ')'
+    GetNextToken(Code, Idx); // eat ')'.
 
-    // Verify right number of names for operator.
-    if (Kind && ArgNames.size() != Kind)
-        return LogErrorP("Invalid number of operands for operator");
-
-    return std::make_shared<PrototypeAST>(FnName, ArgNames, Kind != 0,
-        BinaryPrecedence);
+    return std::make_shared<PrototypeAST>(FnName, ArgNames);
 }
 
 /// definition ::= 'func' prototype expression
 std::shared_ptr<FunctionAST> ParseDefinition(const std::string& Code, int& Idx)
 {
-    GetNextToken(Code, Idx); // eat func.
+    GetNextToken(Code, Idx); // eat "func".
+
     auto Proto = ParsePrototype(Code, Idx);
-    if (!Proto)
-        return nullptr;
+    if (!Proto) return nullptr;
 
     if (auto BlockExpr = ParseBlockExpression(Code, Idx))
         return std::make_shared<FunctionAST>(std::move(Proto), std::move(BlockExpr));

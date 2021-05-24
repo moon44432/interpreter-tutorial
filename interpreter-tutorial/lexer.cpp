@@ -87,16 +87,6 @@ int GetTok(const std::string& Code, int& Idx)
         LastChar = NextCh(Code, Idx);
         return tok_closeblock;
     }
-    if (LastChar == '(') // 괄호 열기
-    {
-        LastChar = NextCh(Code, Idx);
-        return tok_openbrkt;
-    }
-    if (LastChar == ')') // 괄호 닫기
-    {
-        LastChar = NextCh(Code, Idx);
-        return tok_closebrkt;
-    }
 
     // 파일의 끝이면 EOF 토큰 반환
     if (LastChar == EOF)

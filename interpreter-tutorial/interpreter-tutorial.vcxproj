@@ -139,14 +139,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="execute.cpp" />
+    <ClCompile Include="interactiveMode.cpp" />
     <ClCompile Include="lexer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="parser.cpp" />
+    <ClCompile Include="stdfunc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="execute.h" />
+    <ClInclude Include="interactiveMode.h" />
     <ClInclude Include="lexer.h" />
     <ClInclude Include="ast.h" />
+    <ClInclude Include="stdfunc.h" />
     <ClInclude Include="value.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
